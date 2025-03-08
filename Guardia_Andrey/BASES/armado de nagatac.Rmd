@@ -1,0 +1,184 @@
+---
+title: "Untitled"
+author: "Keyla"
+date: "2024-08-12"
+output: html_document
+---
+#ARMANDO BASE NAGATAC
+
+
+#librerias
+```{r}
+library(writexl)
+library(readxl)
+library(tidyr)
+library(readr)
+```
+
+#carga de las bases de datos
+#caudales
+
+```{r}
+ruta = "BASES/Nagatac.xlsx"
+ # basem <- read_excel(ruta, sheet = "MES")
+ # basem$YR= basem$A_O
+
+b55_56 <- read_excel(ruta, sheet = "55-56 Diarios", col_types =rep("numeric", 13))
+b55_56$AÑO<-"55_56"
+
+b56_57 <- read_excel(ruta,sheet = "56-57 Diarios", col_types =rep("numeric", 13))
+b56_57$AÑO<-"56_57"
+
+b57_58 <- read_excel(ruta,sheet = "57-58 Diarios", col_types =rep("numeric", 13))
+b57_58$AÑO<-"57_58"
+
+b58_59 <- read_excel(ruta,sheet = "58-59 Diarios", col_types =rep("numeric", 13))
+b58_59$AÑO<-"58_59"
+
+b59_60 <- read_excel(ruta, sheet = "59-60 Diarios", col_types =rep("numeric", 13))
+b59_60$AÑO<-"59_60"
+
+b61_62 <- read_excel(ruta, sheet = "61-62 Diarios", col_types =rep("numeric", 13))
+b61_62$AÑO<-"61_62"
+
+b62_63 <- read_excel(ruta, sheet = "62-63 Diarios", col_types =rep("numeric", 13))
+b62_63$AÑO<-"62_63"
+
+b63_64 <- read_excel(ruta, sheet = "63-64 Diarios", col_types =rep("numeric", 13))
+b63_64$AÑO<-"63_64"
+
+b64_65 <- read_excel(ruta, sheet = "64_65 Diarios", col_types =rep("numeric", 13))
+b64_65$AÑO<-"64_65"
+
+b65_66 <- read_excel(ruta, sheet = "65_66 Diarios", col_types =rep("numeric", 13))
+b65_66$AÑO<-"65_66"
+
+b66_67 <- read_excel(ruta, sheet = "66_67 Diarios", col_types =rep("numeric", 13))
+b66_67$AÑO<-"66_67"
+
+b67_68 <- read_excel(ruta, sheet = "67_68 Diarios", col_types =rep("numeric", 13))
+b67_68$AÑO<-"67_68"
+
+b68_69<- read_excel(ruta, sheet = "68_69 Diarios", col_types =rep("numeric", 13))
+b68_69$AÑO<-"68_69"
+
+b69_70<- read_excel(ruta, sheet = "69_70 Diarios", col_types =rep("numeric", 13))
+b69_70$AÑO<-"69_70"
+
+b70_71<- read_excel(ruta, sheet = "70_71 Diarios", col_types =rep("numeric", 13))
+b70_71$AÑO<-"70_71"
+
+b71_72<- read_excel(ruta, sheet = "71_72 Diarios", col_types =rep("numeric", 13))
+b71_72$AÑO<-"71_72"
+
+b72_73<- read_excel(ruta, sheet = "72_73 Diarios", col_types =rep("numeric", 13))
+b72_73$AÑO<-"72_73"
+#b72_73$JUN<-as.numeric(b72_73$JUN)
+
+b73_74<- read_excel(ruta, sheet = "73_74 Diarios", col_types =rep("numeric", 13))
+b73_74$AÑO<-"73_74"
+
+b74_75<- read_excel(ruta, sheet = "74-75 Diarios", col_types =rep("numeric", 13))
+b74_75$AÑO<-"74_75"
+
+b75_76<- read_excel(ruta, sheet = "75-76 Diarios", col_types =rep("numeric", 13))
+b75_76$AÑO<-"75_76"
+
+#no hay base para el a_o 76-77
+
+```
+
+
+
+
+```{r}
+b77_78<- read_excel(ruta, sheet = "77-78 Diarios", col_types =rep("numeric", 13))
+b77_78$AÑO<-"77_78"
+
+b78_79<- read_excel(ruta, sheet = "78_79 Diarios", col_types =rep("numeric", 13))
+b78_79$AÑO<-"78_79"
+
+b79_80 <- read_excel(ruta, sheet = "79_80 Diarios", col_types =rep("numeric", 13))
+b79_80$AÑO<-"79_80"
+
+b80_81<- read_excel(ruta, sheet = "80_81 Diarios",col_types =rep("numeric", 13))
+b80_81$AÑO<-"80_81"
+
+b81_82 <- read_excel(ruta,  sheet = "81_82 Diarios ", col_types =rep("numeric", 13))
+b81_82$AÑO<-"81_82"
+
+b82_83<- read_excel(ruta, sheet = "82_83 Diarios", col_types =rep("numeric", 13))
+b82_83$AÑO<-"82_83"
+
+b83_84<- read_excel(ruta, sheet = "83_84 Diarios", col_types =rep("numeric", 13))
+b83_84$AÑO<-"83_84"
+
+b84_85<- read_excel(ruta, sheet = "84_85 Diarios", col_types =rep("numeric", 13))
+b84_85$AÑO<-"84_85"
+
+#en la base compartida solo se llega hasta el a_o 84-85
+```
+
+
+
+```{r}
+ basesN  <- list(b55_56, b56_57, b57_58, b58_59,b61_62, b62_63, b63_64, b64_65, b65_66, b66_67, b67_68, b68_69,b69_70,b70_71, b71_72, b72_73, b73_74, b74_75, b75_76, b77_78, b78_79, b79_80, b80_81, b81_82, b82_83, b83_84,b84_85)
+```
+
+
+```{r}
+transform_base <- function(base) {
+  transformed_base <- base %>%
+    pivot_longer(cols = c("MAY", "JUN", "JUL", "AGO", "SET", "OCT", "NOV", "DIC", "ENE", "FEB", "MAR", "ABR"),
+                 names_to = 'Mes', values_to = 'caudal')
+  
+  return(transformed_base)
+}
+# Aplica la transformación a cada base de datos en la lista usando lapply
+bases_transformadas <- lapply(basesN, transform_base)
+lista<-bases_transformadas
+```
+
+
+```{r}
+b55_56=lista[[1]]
+b56_57=lista[[2]]
+b57_58=lista[[3]]
+b58_59=lista[[4]]
+b61_62=lista[[5]]
+b62_63=lista[[6]]
+b63_64=lista[[7]]
+b64_65=lista[[8]]
+b65_66=lista[[9]]
+b66_67=lista[[10]]
+b67_68=lista[[11]]
+b68_69=lista[[12]]
+b69_70=lista[[13]]
+b70_71=lista[[14]]
+b71_72=lista[[15]]
+b72_73=lista[[16]]
+b73_74=lista[[17]]
+b74_75=lista[[18]]
+b75_76=lista[[19]]
+b77_78=lista[[20]]
+b78_79=lista[[21]]
+b79_80=lista[[22]]
+b80_81=lista[[23]]
+b81_82=lista[[24]]
+b82_83=lista[[25]]
+b83_84=lista[[26]]
+b84_85=lista[[27]]
+
+```
+
+```{r}
+colnames(b58_59)<-c("DIA", "AÑO", "Mes", "caudal")
+
+base_nagatac=rbind(b55_56, b56_57, b57_58, b58_59,b61_62, b62_63, b63_64, b64_65, b65_66, b66_67, b67_68, b68_69,b69_70,b70_71, b71_72, b72_73, b73_74, b74_75, b75_76, b77_78, b78_79, b79_80, b80_81, b81_82, b82_83, b83_84, b84_85)
+
+# Especifica la ruta donde deseas guardar el archivo Excel en la carpeta "Downloads"
+ruta_excel <- "C:/Users/User/Desktop/practica/Caudales-Minimos/BASES/base_nagatac.xlsx"
+
+# Guarda la base de datos en un archivo Excel
+write.xlsx(base_nagatac, ruta_excel, row.names = FALSE)
+```

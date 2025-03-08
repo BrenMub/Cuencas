@@ -1,0 +1,1170 @@
+---
+title: "Cuenca_Guardia"
+author: "Andrey"
+date: "2025-01-25"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("chirps")
+install.packages("terra")
+install.packages("writexl")
+```
+
+Importar Shapes de la Cuenca Guardia
+```{r}
+library(sf)
+library(chirps)
+library(terra)
+library(writexl)
+shape <- st_read("Shapes/Cuenca_Guardia/Cuenca_temp.shp")
+```
+Graficar la Cuenca Guardia
+
+```{r}
+shape_transf <- st_transform(shape, crs = 4326)
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])
+lon_range <- c(bbox["xmin"], bbox["xmax"]) 
+```
+
+```{r}
+plot(st_geometry(shape), axes= T)
+```
+
+```{r, eval=FALSE}
+dates1 <- as.Date(c("1983-01-01", "1983-06-01"))
+lonlat <- data.frame(lon_range, lat_range)
+d_83_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1983-06-02", "1983-12-31"))
+d_83_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1984-01-01", "1984-06-01"))
+d_84_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1984-06-02", "1984-12-31"))
+d_84_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1985-01-01", "1985-06-01"))
+d_85_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1985-06-02", "1985-12-31"))
+d_85_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1986-01-01", "1986-06-01"))
+d_86_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1986-06-02", "1986-12-31"))
+d_86_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1987-01-01", "1987-06-01"))
+d_87_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1987-06-02", "1987-12-31"))
+d_87_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1988-01-01", "1988-06-01"))
+d_88_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1988-06-02", "1988-12-31"))
+d_88_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1989-01-01", "1989-06-01"))
+d_89_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1989-06-02", "1989-12-31"))
+d_89_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1990-01-01", "1990-06-01"))
+d_90_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1990-06-02", "1990-12-31"))
+d_90_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1991-01-01", "1991-06-01"))
+d_91_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1991-06-02", "1991-12-31"))
+d_91_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1992-01-01", "1992-06-01"))
+d_92_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1992-06-02", "1992-12-31"))
+d_92_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1993-01-01", "1993-06-01"))
+d_93_01 <- get_chirts(lonlat, dates1, var="Tmax")
+
+dates1 <- as.Date(c("1993-06-02", "1993-12-31"))
+d_93_02 <- get_chirts(lonlat, dates1, var="Tmax")
+
+temperature=rbind(d_83_01, d_83_02, d_83_03, d_83_04, d_85_01,d_85_02, d_86_01, d_86_02, d_87_01, d_87_02, d_88_01, d_88_02, d_89_01, d_89_02, d_90_01, d_90_02, d_91_01, d_92_02, d_93_01, d_93_02)
+temperature <- temperature[,-1]
+saveRDS(temperature, file = "temperatura.rds")
+
+```
+
+
+```{r}
+temperature <- readRDS('temperatura.rds')
+```
+
+
+```{r}
+library(RNCEP)
+library(ncdf4)
+library(raster)
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(readr)
+```
+
+
+Datos de la Base de Copernicus
+
+```{r, eval=FALSE}
+month_range <- c(1,12)     #period of months
+year_range <- c(1951,1959) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])   #longitude range
+
+data <- NCEP.gather("air.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+temperature1= NCEP.array2df(data)
+
+library(weathermetrics)
+celsius=kelvin.to.celsius(temperature1$variable1, round = 2)
+temperature1$celsius1<-celsius
+
+temperature1$longitude <- ifelse(temperature1$longitude > 180, temperature1$longitude - 360, temperature1$longitude)
+```
+
+```{r, eval=FALSE}
+month_range <- c(1,12)     #period of months
+year_range <- c(1960,1969) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])   #longitude range
+
+data <- NCEP.gather("air.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+temperature2= NCEP.array2df(data)
+
+library(weathermetrics)
+celsius=kelvin.to.celsius(temperature2$variable1, round = 2)
+temperature2$celsius1<-celsius
+
+temperature2$longitude <- ifelse(temperature2$longitude > 180, temperature2$longitude - 360, temperature2$longitude)
+```
+```{r, eval=FALSE}
+month_range <- c(1,12)     #period of months
+year_range <- c(1970,1979) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])   #longitude range
+
+data <- NCEP.gather("air.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+temperature3= NCEP.array2df(data)
+
+library(weathermetrics)
+celsius=kelvin.to.celsius(temperature3$variable1, round = 2)
+temperature3$celsius1<-celsius
+
+temperature3$longitude <- ifelse(temperature3$longitude > 180, temperature3$longitude - 360, temperature3$longitude)
+```
+```{r, eval=FALSE}
+month_range <- c(1,12)     #period of months
+year_range <- c(1980,1989) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])   #longitude range
+
+data <- NCEP.gather("air.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+temperature4= NCEP.array2df(data)
+
+library(weathermetrics)
+celsius=kelvin.to.celsius(temperature4$variable1, round = 2)
+temperature4$celsius1<-celsius
+
+temperature4$longitude <- ifelse(temperature4$longitude > 180, temperature4$longitude - 360, temperature4$longitude)
+```
+```{r, eval=FALSE}
+month_range <- c(1,12)     #period of months
+year_range <- c(1990,1993) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])   #longitude range
+
+data <- NCEP.gather("air.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+temperature5= NCEP.array2df(data)
+
+library(weathermetrics)
+celsius=kelvin.to.celsius(temperature5$variable1, round = 2)
+temperature5$celsius1<-celsius
+
+temperature5$longitude <- ifelse(temperature5$longitude > 180, temperature5$longitude - 360, temperature5$longitude)
+```
+
+```{r, eval=FALSE}
+library(dplyr)
+library(writexl)
+temperature1 <- as_tibble(temperature1)
+temperature2 <- as_tibble(temperature2)
+temperature3 <- as_tibble(temperature3)
+temperature4 <- as_tibble(temperature4)
+temperature5 <- as_tibble(temperature5)
+
+temp <- bind_rows( temperature1,temperature2, temperature3,temperature4, temperature5 )
+
+# Eliminar la parte del datetime que coincide con el patrón "_\\d{2}$"
+temp$datetime <- sub("_\\d{2}$", "", temp$datetime)
+
+temp <- temp[!duplicated(temp$datetime), ]
+
+write_xlsx(temp, "temp.xlsx")
+```
+
+ANÁLISIS DE DATOS!
+
+```{r}
+view(temperature)
+cop <- read.csv("temp.csv")
+view(cop)
+#Promedios Mensuales
+
+chirt <- temperature %>%
+  mutate(mes = floor_date(date, "month")) %>%
+  group_by(mes) %>%
+  summarise(promedio_mensual = mean(chirts, na.rm = TRUE))
+
+cop$datetime <- as.Date(gsub("_", "-", cop$datetime), format = "%Y-%m-%d")
+
+
+cop <- cop %>%
+  mutate(mes = floor_date(datetime, "month")) %>%
+  group_by(mes) %>%
+  summarise(promedio_mensual = mean(celsius1, na.rm = TRUE))
+
+view(chirt)
+view(cop)
+```
+
+
+GRÁFICA MENSUAL Y ANUAL CHIRTS
+
+```{r}
+
+
+chirt_mensual <- chirt %>% ggplot(aes(x=mes, y=promedio_mensual)) + geom_line()+
+  labs(x = "Fecha (Meses)",
+       y = "Temperatura",
+       title = "Temperautra Promedio Mensual desde 1983-1993. Datos: CHIRTS")+theme_minimal()
+
+cop_mensual <- cop %>% ggplot(aes(x=mes, y=promedio_mensual)) + geom_line()+
+  labs(x = "Fecha (Meses)",
+       y = "Temperatura",
+       title = "Temperautra Promedio Anual desde 1951-1993. Datos: COPERNICUS")+theme_minimal()
+
+chirt_anual <- temperature %>% mutate(ano = floor_date(date , "year")) %>% group_by(ano) %>% summarise(promedio_anual = mean(chirts, na.rm= TRUE)) %>% ggplot(aes(x=ano, y =promedio_anual)) + geom_line() +
+  labs(x = "Fecha (Años)",
+       y = "Temperatura",
+       title = "Temperautra Promedio Mensual desde 1983-1993. Datos: CHIRTS")+theme_minimal()
+
+cop_anual <- cop %>% mutate(ano = floor_date(mes , "year")) %>% group_by(ano) %>% summarise(promedio_anual = mean(promedio_mensual, na.rm= TRUE)) %>% ggplot(aes(x=ano, y =promedio_anual)) + geom_line()+
+  labs(x = "Fecha (Años)",
+       y = "Temperatura",
+       title = "Temperautra Promedio Anual desde 1951-1993. Datos: COPERNICUS")+theme_minimal()
+
+plot(chirt_mensual)
+plot(chirt_anual)
+plot(cop_mensual)
+plot(cop_anual)
+
+
+```
+CHIRT
+```{r}
+Promedio_CH <- mean(chirt$promedio_mensual)
+Desviación_CH <- sd(chirt$promedio_mensual)
+Minimo_CH <- min(chirt$promedio_mensual)
+Maximo_CH <- max(chirt$promedio_mensual)
+Cuartil_1_CH <- quantile(chirt$promedio_mensual,0.25)
+Mediana_CH <- median(chirt$promedio_mensual)
+Cuartil_3_CH <- quantile(chirt$promedio_mensual, 0.75)
+```
+```{r}
+summary(chirt$promedio_mensual)
+```
+
+
+COPERNICUS
+```{r}
+Promedio_CO <- mean(cop$promedio_mensual)
+Desviación_CO <- sd(cop$promedio_mensual)
+Minimo_CO <- min(cop$promedio_mensual)
+Maximo_CO <- max(cop$promedio_mensual)
+Cuartil_1_CO <- quantile(cop$promedio_mensual, c(0.25), type=6)
+Mediana_CO <- median(cop$promedio_mensual)
+Cuartil_3_CO <- quantile(cop$promedio_mensual, c(0.75), type=6)
+```
+```{r}
+summary(cop$promedio_mensual)
+```
+Comparación Datos COP y CHIRTS 1983 - 1993
+```{r}
+df <- left_join(chirt, cop, by="mes")
+colnames(df) <- c("mes", "promedio_mensual_chirts", "promedio_mensual_cop")
+df_long <- df %>%  pivot_longer(cols=c(promedio_mensual_chirts, promedio_mensual_cop), names_to = "base", values_to = "promedio")
+
+df_long %>% ggplot(aes(x=mes, y=promedio, color=base)) + geom_line()
+
+```
+Resumen por Año y por mes
+```{r}
+temperature$date <- as.Date(temperature$date) 
+datos <- temperature %>%mutate(
+  año = year(date),
+  Mes = month(date, label=TRUE)
+)
+view(datos)
+
+datos <- datos[, -c(1,2,3)]
+datos <- datos[, c(2, 3, 1)]
+
+
+```
+
+```{r}
+resumen <- datos %>% 
+  group_by(año,Mes) %>% 
+  summarise(Media = mean(chirts, na.rm=TRUE),
+            Min= min(chirts, na.rm=TRUE),
+            Max= max(chirts, na.rm=TRUE),
+            Q1= quantile(chirts, 0.25, na.rm=TRUE),
+            Q2= median(chirts, na.rm=TRUE),
+            Q3= quantile(chirts, na.rm=TRUE),
+            sd= sd(chirts, na.rm=TRUE)
+            )
+view(resumen)
+resumen <- distinct(resumen)
+resumen <- resumen %>% 
+  group_by(año, Mes) %>% 
+  summarise(across(where(is.numeric), mean, na.rm=TRUE), 
+            .groups = "drop")
+
+```
+
+```{r}
+resumen %>% group_by(año) %>% 
+  ggplot(aes(x=as.factor(año), y = Media)) +
+  geom_boxplot()+ theme_minimal()+
+  labs(title= "Distribución de Valores por Año. Datos: CHIRTS",
+       x= "Año (1983-1993)",
+       y= "Valores (°C)")+
+  theme(axis.text.x = element_text(angle=45, hjust=1))
+
+
+resumen %>% group_by(año) %>% 
+  ggplot(aes(x=Media, fill = as.factor(año)))+
+  geom_histogram(bins=30, alpha=0.6, position="identity")+
+  theme_minimal()+
+  labs(title = "Histograma de valores por Año. Datos: CHIRTS",
+       x="Valores",
+       y= "Frecuencia",
+       fill = "Año")
+```
+Precipitaciones CHIRPS
+
+
+
+```{r}
+dates1 <- c("1981-01-02", "1981-06-01")
+lonlat <- data.frame(lon_range, lat_range)
+d_81_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1981-06-01", "1981-12-31")
+d_81_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1982-01-01", "1982-06-01")
+d_82_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1982-06-01", "1982-12-31")
+d_82_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1983-01-01", "1983-06-01")
+d_83_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1983-06-01", "1983-12-31")
+d_83_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1984-01-01", "1984-06-01")
+d_84_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1984-06-01", "1984-12-31")
+d_84_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1985-01-01", "1985-06-01")
+d_85_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1985-06-01", "1985-12-31")
+d_85_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1986-01-01", "1986-06-01")
+d_86_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1986-06-01", "1986-12-31")
+d_86_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1987-01-01", "1987-06-01")
+d_87_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1987-06-01", "1987-12-31")
+d_87_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1988-01-01", "1988-06-01")
+d_88_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1988-06-01", "1988-12-31")
+d_88_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1989-01-01", "1989-06-01")
+d_89_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1989-06-01", "1989-12-31")
+d_89_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1990-01-01", "1990-06-01")
+d_90_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1990-06-01", "1990-12-31")
+d_90_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1991-01-01", "1991-06-01")
+d_91_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1991-06-01", "1991-12-31")
+d_91_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1992-01-01", "1992-06-01")
+d_92_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1992-06-01", "1992-12-31")
+d_92_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1993-01-01", "1993-06-01")
+d_93_01_p<- get_chirps(lonlat,dates1, server="CHC")
+
+dates1 <- c("1993-06-01", "1993-12-31")
+d_93_02_p<- get_chirps(lonlat,dates1, server="CHC")
+
+```
+```{r}
+precipitacion=rbind(d_81_01_p, d_81_02_p, d_82_01_p, d_82_02_p, d_83_01_p, d_83_02_p, d_84_01_p, d_84_02_p, d_85_01_p, d_85_02_p,d_86_01_p, d_86_02_p,  d_87_01_p, d_87_02_p, d_88_01_p, d_88_02_p, d_89_01_p, d_89_02_p, d_90_01_p, d_90_02_p, d_91_01_p, d_91_02_p, d_92_01_p, d_92_02_p, d_93_01_p, d_93_02_p)
+precipitacion <- precipitacion[,-1]
+saveRDS(precipitacion, file = "lluvia.rds")
+```
+
+```{r}
+precipitacion <- readRDS('lluvia.rds')
+view(precipitacion)
+
+precipitacion$date <- as.Date(precipitacion$date) 
+datos_chirps <- precipitacion %>%mutate(
+  año = year(date),
+  Mes = month(date, label=TRUE)
+)
+view(datos_chirps)
+
+datos_chirps <- datos_chirps[, -c(1,2,3)]
+datos_chirps <- datos_chirps[, c(2, 3, 1)]
+
+datos_chirts <- datos
+```
+
+```{r}
+datos_chirts <- datos_chirts %>% group_by(año,Mes) %>% 
+  summarise(chirts = mean(chirts, na.rm=TRUE))
+datos_chirps <- datos_chirps %>% group_by(año,Mes) %>% 
+  summarise(chirps = mean(chirps,na.rm=TRUE))
+
+view(datos_chirps)
+view(datos_chirts)
+
+```
+
+Índice del NIño y Niña 
+
+```{r}
+library(readr)
+indices <- read.table("nino123.txt", header = TRUE)
+
+indices = indices[,c(1,2,9)]
+
+view(indices)
+```
+
+Humedad
+
+```{r, eval=FALSE}
+month_range <- c(1,12)     
+year_range <- c(1951,1959) 
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("shum.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+humedad1= NCEP.array2df(data)
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1960,1969) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("shum.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+humedad2= NCEP.array2df(data)
+
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1970,1979) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("shum.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+humedad3= NCEP.array2df(data)
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1980,1989) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("shum.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+humedad4= NCEP.array2df(data)
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1990,1993) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("shum.2m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+humedad5= NCEP.array2df(data)
+
+```
+```{r}
+humedad1$datetime <- sub("_\\d{2}$", "", humedad1$datetime)
+humedad1<- humedad1[!duplicated(humedad1$datetime), ]
+
+humedad2$datetime <- sub("_\\d{2}$", "", humedad2$datetime)
+humedad2<- humedad2[!duplicated(humedad2$datetime), ]
+
+
+humedad3$datetime <- sub("_\\d{2}$", "", humedad3$datetime)
+humedad3<- humedad3[!duplicated(humedad3$datetime), ]
+
+humedad4$datetime <- sub("_\\d{2}$", "", humedad4$datetime)
+humedad4<- humedad4[!duplicated(humedad4$datetime), ]
+
+
+humedad5$datetime <- sub("_\\d{2}$", "", humedad5$datetime)
+humedad5<- humedad5[!duplicated(humedad5$datetime), ]
+
+
+humedad= rbind(humedad1, humedad2, humedad3, humedad4, humedad5)
+
+write_xlsx(humedad, "humedad.xlsx")
+
+view(humedad)
+```
+
+
+Viento
+
+```{r, eval=FALSE}
+month_range <- c(1,12)     
+year_range <- c(1951,1959) 
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("uwnd.10m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+viento1= NCEP.array2df(data)
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1960,1969) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("uwnd.10m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+viento2= NCEP.array2df(data)
+
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1970,1979) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("uwnd.10m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+viento3= NCEP.array2df(data)
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1980,1989) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("uwnd.10m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+viento4= NCEP.array2df(data)
+
+month_range <- c(1,12)     #period of months
+year_range <- c(1990,1993) #period of years
+
+bbox <- st_bbox(shape_transf)
+lat_range <- c(bbox["ymin"], bbox["ymax"])  #latitude range
+lon_range <- c(bbox["xmin"], bbox["xmax"])
+
+data <- NCEP.gather("uwnd.10m",
+                    level="gaussian",
+                    month_range,
+                    year_range,
+                    lat_range,lon_range,
+                    return.units = TRUE,
+                    reanalysis2=FALSE)
+
+viento5= NCEP.array2df(data)
+
+```
+
+```{r, eval=FALSE}
+viento= rbind(viento1, viento2, viento3, viento4, viento5)
+
+viento$datetime <- sub("_\\d{2}$", "", viento$datetime)
+viento<- viento[!duplicated(viento$datetime), ]
+
+write_xlsx(viento, "viento.xlsx")
+
+view(viento)
+```
+###Gráficos de percicpitaciones por mes 
+
+```{r}
+# Asegurar que la columna de fecha sea de tipo Date
+precipitacion$date <- as.Date(precipitacion$date)
+
+# Extraer año y mes en columnas separadas
+precipitacion <- precipitacion %>%
+  mutate(year = year(date), month = month(date, label = TRUE))
+
+# Agrupar por año, mes y día, y calcular la precipitación promedio diaria
+precipitacion_daily <- precipitacion %>%
+  group_by(year, month, date) %>%
+  summarise(chirps_mean = mean(chirps, na.rm = TRUE), .groups = "drop")
+
+# Generar un gráfico por cada año y mostrarlo en la consola
+unique_years <- unique(precipitacion_daily$year)
+
+for (yr in unique_years) {
+  
+  # Filtrar datos del año actual
+  temp_year <- precipitacion_daily %>% filter(year == yr)
+  
+  # Crear el gráfico
+  p <- ggplot(temp_year, aes(x = date, y = chirps_mean, color = month, group = month)) +
+    geom_line() +
+    geom_point() +
+    labs(title = paste("Serie de tiempo de Precipitación - Año", yr),
+         x = "Fecha",
+         y = "Precipitación Promedio (chirps)",
+         color = "Mes") +
+    theme_minimal()
+  
+  # Mostrar el gráfico
+  print(p)
+}
+```
+```{r}
+# Asegurar que la columna de fecha sea de tipo Date
+precipitacion$date <- as.Date(precipitacion$date)
+
+# Extraer año y mes en columnas separadas
+precipitacion <- precipitacion %>%
+  mutate(year = year(date), month = month(date, label = TRUE))  # "Jan", "Feb", etc.
+
+# Generar un boxplot por cada año y mostrarlo en la consola
+unique_years <- unique(precipitacion$year)
+
+for (yr in unique_years) {
+  
+  # Filtrar datos del año actual
+  temp_year <- precipitacion %>% filter(year == yr)
+  
+  # Crear el gráfico de boxplot
+  p <- ggplot(temp_year, aes(x = month, y = chirps, fill = month)) +
+    geom_boxplot() +
+    labs(title = paste("Distribución de Precipitación - Año", yr),
+         x = "Mes",
+         y = "Precipitación (chirps)") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotar etiquetas de mes
+  
+  # Mostrar el gráfico
+  print(p)
+}
+
+```
+
+###Gráficos de precipitaciones por año 
+
+```{r}
+# Agrupar por fecha y ubicación, calcular el promedio de precipitación (chirps)
+precipitacion_grouped <- precipitacion %>%
+  group_by(lon, lat, date) %>%
+  summarise(chirps_mean = mean(chirps, na.rm = TRUE), .groups = "drop")
+
+# Graficar la serie de tiempo por ubicación
+ggplot(precipitacion_grouped, aes(x = date, y = chirps_mean, color = factor(paste(lon, lat, sep = ", ")))) +
+  geom_line() +
+  geom_point() + 
+  labs(title = "Serie de tiempo de Precipitación (CHIRPS)",
+       x = "Fecha",
+       y = "Precipitación (chirps)",
+       color = "Ubicación (lon, lat)") +
+  theme_minimal()
+
+```
+```{r}
+# Agrupar solo por fecha y calcular el promedio de precipitación (chirps)
+precipitacion_grouped <- precipitacion %>%
+  group_by(date) %>%
+  summarise(chirps_mean = mean(chirps, na.rm = TRUE), .groups = "drop")
+
+# Graficar la serie de tiempo
+ggplot(precipitacion_grouped, aes(x = date, y = chirps_mean)) +
+  geom_line(color = "blue") +
+  geom_point(color = "red") +
+  labs(title = "Serie de tiempo de Precipitación (CHIRPS)",
+       x = "Fecha",
+       y = "Precipitación Promedio (chirps)") +
+  theme_minimal()
+
+```
+
+##Indice del niño y la niña 
+
+```{r}
+indices <- read.table("nino123.txt", header = TRUE)
+
+indices = indices[,c(1,2,9)]
+```
+
+```{r}
+indices <- indices %>%
+  mutate(
+    date = sprintf("%04d-%02d", YR, MON)
+  )
+
+indices <- indices[,-c(1:2)]
+```
+
+##Análisis mínimos
+
+```{r}
+minimos <- st_read("GuardiaMinimos.csv")
+```
+
+```{r}
+minimos
+```
+```{r}
+minimos$DIA <- as.numeric(minimos$DIA)
+minimos$M3.SEG <- as.numeric(minimos$M3.SEG)
+minimos$ESC <- as.numeric(minimos$ESC)
+
+```
+```{r}
+# Resumen con estadísticas básicas (media, mínimo, máximo) para cada columna
+minimos_summary <- minimos %>%
+  summarise(
+    M3.SEG_mean = mean(M3.SEG, na.rm = TRUE),  # Media de M3.SEG
+    M3.SEG_min = min(M3.SEG, na.rm = TRUE),    # Mínimo de M3.SEG
+    M3.SEG_max = max(M3.SEG, na.rm = TRUE),    # Máximo de M3.SEG
+    count = n()                                # Número de filas
+  )
+
+# Ver el resumen
+print(minimos_summary)
+```
+
+
+```{r}
+# Verificar si los valores numéricos fueron correctamente asignados
+summary(minimos$M3.SEG)
+
+# Crear el histograma de los valores de 'M3.SEG.'
+hist(minimos$M3.SEG,
+     main = "Histograma de Valores Mínimos",
+     xlab = "Valor mínimo del caudal",
+     col = "lightblue",
+     border = "black",
+     breaks = sqrt(length(minimos$M3.SEG)))  # Número de bins
+
+
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)  # Para expand_grid()
+
+# Asegurar que la columna 'MES' esté en mayúsculas y ordenada correctamente
+meses_es <- c("ENE", "FEB", "MAR", "ABR", "MAY", "JUN", 
+              "JUL", "AGO", "SET", "OCT", "NOV", "DIC")
+
+minimos$MES <- toupper(minimos$MES)  # Convertir a mayúsculas
+minimos$MES <- factor(minimos$MES, levels = meses_es)  # Asegurar orden correcto
+
+# Obtener el mínimo del caudal por mes y año
+minimos_mensuales <- minimos %>%
+  group_by(ANO, MES) %>%
+  summarise(min_caudal = min(M3.SEG, na.rm = TRUE), .groups = "drop")  # Evita eliminar grupos
+
+# Crear una estructura con todos los meses y años posibles
+años_disponibles <- unique(minimos$ANO)  # Lista de años en los datos
+estructura_completa <- expand_grid(ANO = años_disponibles, MES = meses_es)
+
+# Unir con los datos originales para asegurar 12 meses por año
+minimos_mensuales <- estructura_completa %>%
+  left_join(minimos_mensuales, by = c("ANO", "MES")) %>%
+  mutate(min_caudal = replace_na(min_caudal, 0))  # Rellenar meses faltantes con 0 (o NA)
+
+# Crear la fecha usando Año y Mes para graficar
+minimos_mensuales <- minimos_mensuales %>%
+  mutate(fecha = as.Date(paste(ANO, match(MES, meses_es), "01", sep = "-"), format = "%Y-%m-%d"))
+
+# Crear gráficos separados por año y mostrarlos en consola
+for (year in unique(minimos_mensuales$ANO)) {
+  
+  # Filtrar datos del año actual
+  data_year <- minimos_mensuales %>% filter(ANO == year)
+  
+  # Crear el gráfico
+  plot <- ggplot(data_year, aes(x = fecha, y = min_caudal, group = 1)) +
+    geom_line(color = "blue") +  # Línea azul
+    geom_point(color = "red") +  # Puntos rojos
+    scale_x_date(date_labels = "%b", date_breaks = "1 month") +  # Mostrar todos los meses
+    labs(title = paste("Mínimos Mensuales del Caudal - Año", year),
+         x = "Mes",
+         y = "Caudal Mínimo (m³/s)") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotar etiquetas para mejor lectura
+  
+  # Mostrar el gráfico en la consola
+  print(plot)
+  
+  # Guardar la imagen
+  ggsave(filename = paste0("caudal_minimo_", year, ".png"), plot = plot, width = 8, height = 5)
+  
+  print(paste("Imagen guardada:", paste0("caudal_minimo_", year, ".png")))
+}
+
+
+```
+```{r}
+# Asegurar que la columna 'MES' esté en mayúsculas y ordenada correctamente
+meses_es <- c("ENE", "FEB", "MAR", "ABR", "MAY", "JUN", 
+              "JUL", "AGO", "SET", "OCT", "NOV", "DIC")
+
+minimos$MES <- toupper(minimos$MES)  # Convertir a mayúsculas
+minimos$MES <- factor(minimos$MES, levels = meses_es)  # Asegurar orden correcto
+
+# Obtener el mínimo del caudal por mes y año
+minimos_mensuales <- minimos %>%
+  group_by(ANO, MES) %>%
+  summarise(min_caudal = min(M3.SEG, na.rm = TRUE), .groups = "drop")  # Evita eliminar grupos
+
+# Crear estructura con todos los años y meses posibles
+años_disponibles <- unique(minimos$ANO)  # Lista de años en los datos
+estructura_completa <- expand_grid(ANO = años_disponibles, MES = meses_es)
+
+# Unir con los datos originales y detectar valores faltantes
+minimos_completos <- estructura_completa %>%
+  left_join(minimos_mensuales, by = c("ANO", "MES")) %>%
+  mutate(Faltante = ifelse(is.na(min_caudal), "Sí", "No"))  # Marcar datos faltantes
+
+# Mostrar los primeros registros
+print(head(minimos_completos, 20))  # Muestra las primeras 20 filas
+
+# Contar datos faltantes por año
+faltantes_por_ano <- minimos_completos %>%
+  group_by(ANO) %>%
+  summarise(Total_Faltantes = sum(is.na(min_caudal))) %>%
+  arrange(desc(Total_Faltantes))  # Ordenar por mayor cantidad de faltantes
+
+print(faltantes_por_ano)  # Mostrar el conteo de faltantes
+
+```
+
+```{r}
+view(viento)
+minimos <- st_read("GuardiaMinimos.csv")
+minimos$DIA <- as.numeric(minimos$DIA)
+minimos$M3.SEG <- as.numeric(minimos$M3.SEG)
+minimos$ESC <- as.numeric(minimos$ESC)
+minimos <- minimos %>% group_by(ANO,MES) %>% 
+  summarise(caudal = mean(M3.SEG, na.rm=TRUE))
+minimos$MES <- tolower(minimos$MES)
+minimos$MES <- gsub("set","sep",minimos$MES)
+view(minimos)
+view(indices)
+indices$mes <- tolower(indices$mes)
+view(datos_chirts)
+view(datos_chirps)
+colnames(minimos) <- c("año","mes","caudal")
+datos_chirps$año <- as.numeric(datos_chirps$año)
+datos_chirps$mes <- as.numeric(datos_chirps$mes)
+datos_chirps$precipitacion <- as.numeric(datos_chirps$Temperatura_Chirps)
+datos_chirts$año <- as.numeric(datos_chirts$año)
+datos_chirts$mes <- as.numeric(datos_chirts$mes)
+datos_chirts$temperatura <- as.numeric(datos_chirts$Temperatura_Chirts)
+viento$año <- as.numeric(viento$año)
+viento$mes <- as.numeric(viento$mes)
+viento$Viento <- as.numeric(viento$Viento)
+minimos$año <- as.numeric(minimos$año)
+
+indices$año <- as.numeric(indices$año)
+indices$mes <- as.numeric(indices$mes)
+indices$niño <- as.numeric(indices$Niño)
+meses <- c("ene", "feb", "mar", "abr", "may", "jun", 
+           "jul", "ago", "sep", "oct", "nov", "dic")
+view(datos_chirps)
+datos_chirps<- datos_chirps[,-c(3)]
+view(datos_chirts)
+datos_chirts<- datos_chirts[,-c(3)]
+view(indices)
+colnames(indices)<-c("año","mes","niño")
+indices$año <- as.double(indices$año)
+indices$mes <- as.double(indices$mes)
+view(minimos)
+minimos$mes <- match(minimos$mes,meses)
+minimos$año <- as.double(minimos$año)
+minimos$mes <- as.double(minimos$mes) 
+view(viento)
+glimpse(datos_chirts)
+glimpse(datos_chirps)
+glimpse(minimos)
+glimpse(indices)
+glimpse(viento)
+
+basedatos <- left_join(datos_chirts,datos_chirps, by= c("año","mes"))
+basedatos <- basedatos %>% left_join(minimos, by= c("año","mes"))
+basedatos <- basedatos %>% left_join(viento, by= c("año","mes"))
+basedatos <- basedatos %>% left_join(indices, by= c("año","mes"))
+view(basedatos)
+basedatos <- na.omit(basedatos)
+write_xlsx(basedatos,"basedatos.xlsx")
+basedatosfecha <- basedatos %>% mutate(datetime = make_date(year = año, month = mes, day = 1))
+view(basedatosfecha)
+basedatosfecha <- basedatosfecha[,c(-1,-2)]
+basedatosfecha <- basedatosfecha %>% select(6,1,2,3,4,5)
+write_xlsx(basedatosfecha,"basedatosfecha.xlsx")
+```
+
+
+```{r}
+library(randomForest)
+library(dplyr)
+library(zoo)
+modelo <- basedatos
+modelo$caudal_lag_1m <- lag(modelo$caudal, 1)  # Caudal hace 1 mes
+modelo$caudal_lag_2m <- lag(modelo$caudal, 2)  # Caudal hace 2 meses
+modelo$caudal_lag_3m <- lag(modelo$caudal, 3)  # Caudal hace 3 meses
+modelo$caudal_lag_4m <- lag(modelo$caudal, 4) # Caudal hace 4 meses
+modelo$caudal_lag_5m <- lag(modelo$caudal, 5) # Caudal hace 5 meses
+modelo$caudal_lag_6m <- lag(modelo$caudal, 6) #Caudal hace 6 meses 
+modelo$temp_lag_1m <- lag(modelo$temperatura, 1)  # temperatura hace 1 mes
+modelo$temp_lag_2m <- lag(modelo$temperatura, 2)  # temperatura hace 2 meses
+modelo$temp_lag_3m <- lag(modelo$temperatura, 3)  # temperatura hace 3 meses
+modelo$temp_lag_4m <- lag(modelo$temperatura, 4) # temperatura hace 4 meses
+modelo$temp_lag_5m <- lag(modelo$temperatura, 5) # temperatura hace 5 meses
+modelo$temp_lag_6m <- lag(modelo$temperatura, 6) #temperatura hace 6 meses 
+modelo$prep_lag_1m <- lag(modelo$precipitacion, 1)  # precipitacion hace 1 mes
+modelo$prep_lag_2m <- lag(modelo$precipitacion, 2)  # precipitacion hace 2 meses
+modelo$prep_lag_3m <- lag(modelo$precipitacion, 3)  # precipitacion hace 3 meses
+modelo$prep_lag_4m <- lag(modelo$precipitacion, 4) # precipitacion hace 4 meses
+modelo$prep_lag_5m <- lag(modelo$precipitacion, 5) # precipitacion hace 5 meses
+modelo$prep_lag_6m <- lag(modelo$precipitacion, 6) #precipitacion hace 6 meses 
+
+modelo <- na.omit(modelo)
+view(modelo)
+modelo <- modelo %>% mutate(datetime = make_date(year = año, month = mes, day = 1))
+modelo <- modelo[,c(-1,-2)]
+modelo <- modelo %>% select(24,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23)
+write_xlsx(modelo,"basemodelo.xlsx")
+```
+
+
+```{r}
+modelo$datetime<-as.Date(modelo$datetime)
+train_size <- floor(0.7*nrow(modelo))
+train_data <- modelo[1:train_size,]
+test_data <- modelo[(train_size+1):nrow(modelo),]
+
+model <- randomForest(caudal ~., data=train_data,ntree=100)
+predicciones <- predict(model,newdata=test_data)
+valores_reales <- test_data$caudal
+
+predicciones <- predict(model, newdata=test_data)
+grafico_df <- data.frame(
+  Fecha=test_data$datetime,
+  Real=test_data$caudal,
+  Predicción=predicciones
+)
+ggplot(grafico_df, aes(x = Fecha)) + 
+  geom_line(aes(y = Real, color = "Real"), size = 0.7) +  
+  geom_line(aes(y = Predicción, color = "Predicción"), size = 0.7, linetype = 1) + 
+  labs(title = "Comparación entre valores reales y predicciones",
+       x = "Fecha",
+       y = "Caudal") +
+  scale_color_manual(values = c("Real" = "blue", "Predicción" = "#7D7D7D")) +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+
+param_grid <- expand.grid(
+  mtry = c(2, 3, 4, 5, 6, 7, 8,10))
+
+
+library(caret)
+
+train_control <- trainControl(
+  method = "timeslice",    
+  initialWindow = 30,      
+  horizon = 5,             
+  fixedWindow = TRUE)
+
+
+modelo_tuneado <- train(
+  caudal ~ .,             
+  data = train_data,         
+  method = "rf",             
+  trControl = train_control, 
+  tuneGrid = param_grid)
+
+print(modelo_tuneado)
+```
